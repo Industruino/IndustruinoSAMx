@@ -74,7 +74,7 @@ USB and USART are using Generic Clock Generator 0 also.
 
 Bootloader code will be located at 0x0 and executed before any applicative code.
 
-Applications compiled to be executed along with the bootloader will start at 0x2000 (see linker script bootloader_samd21x18.ld).
+Applications compiled to be executed along with the bootloader will start at 0x2000 (see linker script bootloader_sam_m0p_256KB.ld).
 
 Before jumping to the application, the bootloader changes the VTOR register to use the interrupt vectors of the application @0x2000.<- not required as application code is taking care of this.
 
@@ -92,4 +92,3 @@ For example for the **Arduino MKR1000** we use `board_definitions_arduino_mkr100
 ```
 BOARD_ID=arduino_mkr1000 NAME=samd21_sam_ba_arduino_mkr1000 make clean all
 ```
-

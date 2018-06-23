@@ -212,10 +212,14 @@ SECTIONS
 	 * size of stack_dummy section */
 	__StackTop = ORIGIN(RAM) + LENGTH(RAM);
 	__StackLimit = __StackTop - SIZEOF(.stack_dummy);
+	__BinarySize = (SIZEOF(.vectors) + SIZEOF(.text) + SIZEOF(.data));
 	PROVIDE(__stack = __StackTop);
 
 	__ram_end__ = ORIGIN(RAM) + LENGTH(RAM) -1 ;
 
 	/* Check if data + heap + stack exceeds RAM limit */
 	ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
+
+	/* Check if vectors + text + data exceeds bootloader FLASH limit */
+	ASSERT(__BinarySize <= LENGTH(FLASH), "Bootloader exceeds 8KB (vectors + text + data). Please recompile with different options.")
 }

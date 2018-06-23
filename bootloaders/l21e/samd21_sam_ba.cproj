@@ -209,9 +209,9 @@
       <SubType>compile</SubType>
       <Link>README.md</Link>
     </None>
-    <None Include="bootloader_samd21x18.ld">
+    <None Include="bootloader_sam_m0p_256KB.ld">
       <SubType>compile</SubType>
-      <Link>bootloader_samd21x18.ld</Link>
+      <Link>bootloader_sam_m0p_256KB.ld</Link>
     </None>
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
