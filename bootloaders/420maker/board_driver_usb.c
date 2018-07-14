@@ -1,6 +1,7 @@
 /*
   Copyright (c) 2015 Arduino LLC.  All right reserved.
   Copyright (c) 2015 Atmel Corporation/Thibaut VIARD.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>  All right reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,12 +23,28 @@
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
 
-#define NVM_USB_PAD_TRANSN_POS            (45)
+#if (SAMD21_SERIES)
+  #define NVM_CALIBRATION_ADDRESS         NVMCTRL_OTP4
+  #define NVM_USB_PAD_TRANSN_POS          (45)
+  #define NVM_USB_PAD_TRANSP_POS          (50)
+  #define NVM_USB_PAD_TRIM_POS            (55)
+#elif (SAML21B_SERIES)
+  #define NVM_CALIBRATION_ADDRESS         NVMCTRL_OTP5
+  #define NVM_USB_PAD_TRANSN_POS          (13)
+  #define NVM_USB_PAD_TRANSP_POS          (18)
+  #define NVM_USB_PAD_TRIM_POS            (23)
+#endif
+
 #define NVM_USB_PAD_TRANSN_SIZE           (5)
-#define NVM_USB_PAD_TRANSP_POS            (50)
 #define NVM_USB_PAD_TRANSP_SIZE           (5)
-#define NVM_USB_PAD_TRIM_POS              (55)
 #define NVM_USB_PAD_TRIM_SIZE             (3)
+
+/* Generic Clock Multiplexer IDs */
+#if (SAMD21_SERIES)
+  #define GCM_USB (6U)
+#elif (SAML21B_SERIES)
+  #define GCM_USB (4U)
+#endif
 
 __attribute__((__aligned__(4))) UsbDeviceDescriptor usb_endpoint_table[MAX_EP]; // Initialized to zero in USB_Init
 __attribute__((__aligned__(4))) uint8_t udd_ep_out_cache_buffer[2][64]; //1 for CTRL, 1 for BULK
@@ -60,7 +77,11 @@ void USB_Init(void)
   uint32_t pad_transn, pad_transp, pad_trim;
 
   /* Enable USB clock */
+#if (SAMD21_SERIES)
   PM->APBBMASK.reg |= PM_APBBMASK_USB;
+#elif (SAML21B_SERIES)
+  MCLK->APBBMASK.reg |= MCLK_APBBMASK_USB;
+#endif
 
   /* Set up the USB DP/DN pins */
   PORT->Group[0].PINCFG[PIN_PA24G_USB_DM].bit.PMUXEN = 1;
@@ -71,9 +92,10 @@ void USB_Init(void)
   PORT->Group[0].PMUX[PIN_PA25G_USB_DP/2].reg |= MUX_PA25G_USB_DP << (4 * (PIN_PA25G_USB_DP & 0x01u));
 
   /* ----------------------------------------------------------------------------------------------
-   * Put Generic Clock Generator 0 as source for Generic Clock Multiplexer 6 (USB reference)
+   * Put Generic Clock Generator 0 as source for Generic Clock Multiplexer (USB reference)
    */
-  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID( 6 ) | // Generic Clock Multiplexer 6
+#if (SAMD21_SERIES)
+  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCM_USB) | // Generic Clock Multiplexer
               GCLK_CLKCTRL_GEN_GCLK0 | // Generic Clock Generator 0 is source
               GCLK_CLKCTRL_CLKEN ;
 
@@ -81,6 +103,10 @@ void USB_Init(void)
   {
     /* Wait for synchronization */
   }
+#elif (SAML21B_SERIES)
+  GCLK->PCHCTRL[GCM_USB].reg = ( GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK0 );
+  while ( (GCLK->PCHCTRL[GCM_USB].reg & GCLK_PCHCTRL_CHEN) == 0 );        // wait for sync
+#endif
 
   /* Reset */
   USB->DEVICE.CTRLA.bit.SWRST = 1;

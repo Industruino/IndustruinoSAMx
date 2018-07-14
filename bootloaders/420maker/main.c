@@ -1,6 +1,7 @@
 /*
   Copyright (c) 2015 Arduino LLC.  All right reserved.
   Copyright (c) 2015 Atmel Corporation/Thibaut VIARD.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>  All right reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -26,6 +27,10 @@
 #include "board_driver_i2c.h"
 #include "sam_ba_usb.h"
 #include "sam_ba_cdc.h"
+
+#if (!SAMD21_SERIES && !SAML21B_SERIES)
+  #error "Unsupported chip: please choose SAMD21 or SAML21B"
+#endif
 
 extern uint32_t __sketch_vectors_ptr; // Exported value from linker script
 extern void board_init(void);
@@ -90,7 +95,11 @@ static void check_start_application(void)
 
 #if defined(BOOT_DOUBLE_TAP_ADDRESS)
   #define DOUBLE_TAP_MAGIC 0x07738135
+#if (SAMD21_SERIES)
   if (PM->RCAUSE.bit.POR)
+#elif (SAML21B_SERIES)
+  if (RSTC->RCAUSE.bit.POR)
+#endif
   {
     /* On power-on initialize double-tap */
     BOOT_DOUBLE_TAP_DATA = 0;

@@ -96,9 +96,15 @@ void serial_open(void)
 	}
 
 	/* Enable clock for BOOT_USART_MODULE */
+#if (SAMD21_SERIES)
 	PM->APBCMASK.reg |= BOOT_USART_BUS_CLOCK_INDEX ;
+#elif (SAML21B_SERIES)
+	MCLK->APBCMASK.reg |= MCLK_APBCMASK_SERCOM0 | MCLK_APBCMASK_SERCOM1 | MCLK_APBCMASK_SERCOM2 | MCLK_APBCMASK_SERCOM3 | MCLK_APBCMASK_SERCOM4 ;
+	MCLK->APBDMASK.reg |= MCLK_APBDMASK_SERCOM5;	// On the SAML, SERCOM5 is on the low power bridge
+#endif
 
 	/* Set GCLK_GEN0 as source for GCLK_ID_SERCOMx_CORE */
+#if (SAMD21_SERIES)
   GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID( BOOT_USART_PER_CLOCK_INDEX ) | // Generic Clock 0 (SERCOMx)
                       GCLK_CLKCTRL_GEN_GCLK0 | // Generic Clock Generator 0 is source
                       GCLK_CLKCTRL_CLKEN ;
@@ -107,6 +113,10 @@ void serial_open(void)
   {
     /* Wait for synchronization */
   }
+#elif (SAML21B_SERIES)
+  GCLK->PCHCTRL[BOOT_USART_PER_CLOCK_INDEX].reg = ( GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK0 );
+  while ( (GCLK->PCHCTRL[BOOT_USART_PER_CLOCK_INDEX].reg & GCLK_PCHCTRL_CHEN) == 0 );        // wait for sync
+#endif
 
 	/* Baud rate 115200 - clock 48MHz -> BAUD value-63018 */
 	uart_basic_init(BOOT_USART_MODULE, 63018, BOOT_USART_PAD_SETTINGS);
@@ -531,4 +541,3 @@ uint32_t serial_getdata_xmd(void* data, uint32_t length)
 	return (true);
 //    return(b_run);
 }
-

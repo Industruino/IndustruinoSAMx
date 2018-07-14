@@ -1,5 +1,6 @@
 # Copyright (c) 2015 Atmel Corporation/Thibaut VIARD.  All right reserved.
 # Copyright (c) 2015 Arduino LLC.  All right reserved.
+# Copyright (C) 2018 Industruino <connect@industruino.com>  All right reserved.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -59,10 +60,11 @@ SIZE=$(ARM_GCC_PATH)size
 # Boards definitions
 BOARD_ID?=arduino_zero
 MCU?=SAMD21G18A
+CLOCKCONFIG_CLOCK_SOURCE?=CLOCKCONFIG_32768HZ_CRYSTAL
 
 # -----------------------------------------------------------------------------
 # Compiler options
-CFLAGS_EXTRA=-D__$(MCU)__ -DBOARD_ID_$(BOARD_ID)
+CFLAGS_EXTRA=-D__$(MCU)__ -DBOARD_ID_$(BOARD_ID) -DCLOCKCONFIG_CLOCK_SOURCE=$(CLOCKCONFIG_CLOCK_SOURCE)
 CFLAGS=-mthumb -mcpu=cortex-m0plus -Wall -c -std=gnu99 -ffunction-sections -fdata-sections -nostdlib -nostartfiles --param max-inline-insns-single=500
 ifdef DEBUG
   CFLAGS+=-g3 -O1 -DDEBUG=1
