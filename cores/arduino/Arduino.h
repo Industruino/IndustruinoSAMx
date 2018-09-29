@@ -1,6 +1,7 @@
 /*
   Arduino.h - Main include file for the Arduino SDK
   Copyright (c) 2014 Arduino LLC.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -129,5 +130,10 @@ void loop( void ) ;
 #include "USB/USBCore.h"
 #include "USB/USBAPI.h"
 #include "USB/USB_host.h"
+
+// The same define inside the 'saml21e18b.h' CMSIS file is not visible
+#if (SAML21B_SERIES)
+#define _U(x) x ## U
+#endif
 
 #endif // Arduino_h

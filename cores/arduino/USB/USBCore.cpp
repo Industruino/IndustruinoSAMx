@@ -1,5 +1,6 @@
 /*
   Copyright (c) 2016 Arduino LLC.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -15,6 +16,13 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+//  Part of the SAML code ported from Mattairtech ArduinoCore-samd (https://github.com/mattairtech/ArduinoCore-samd):
+//     Copyright: Copyright (c) 2017-2018 MattairTech LLC. All right reserved.
+//     License: LGPL http://www.gnu.org/licenses/lgpl-2.1.html
+
+#include "WVariant.h"
+#include "wiring_private.h"
 
 #if defined(USBCON)
 
@@ -314,22 +322,29 @@ void USBDeviceClass::init()
 #endif
 
 	// Enable USB clock
+#if (SAMD21_SERIES)
 	PM->APBBMASK.reg |= PM_APBBMASK_USB;
+#elif (SAML21B_SERIES)
+	MCLK->APBBMASK.reg |= MCLK_APBBMASK_USB;
+#else
+	#error "USBCore.cpp: Unsupported chip"
+#endif
 
 	// Set up the USB DP/DN pins
-	PORT->Group[0].PINCFG[PIN_PA24G_USB_DM].bit.PMUXEN = 1;
-	PORT->Group[0].PMUX[PIN_PA24G_USB_DM/2].reg &= ~(0xF << (4 * (PIN_PA24G_USB_DM & 0x01u)));
-	PORT->Group[0].PMUX[PIN_PA24G_USB_DM/2].reg |= MUX_PA24G_USB_DM << (4 * (PIN_PA24G_USB_DM & 0x01u));
-	PORT->Group[0].PINCFG[PIN_PA25G_USB_DP].bit.PMUXEN = 1;
-	PORT->Group[0].PMUX[PIN_PA25G_USB_DP/2].reg &= ~(0xF << (4 * (PIN_PA25G_USB_DP & 0x01u)));
-	PORT->Group[0].PMUX[PIN_PA25G_USB_DP/2].reg |= MUX_PA25G_USB_DP << (4 * (PIN_PA25G_USB_DP & 0x01u));
+	pinPeripheral( PIN_USB_DM, PIO_COM );
+	pinPeripheral( PIN_USB_DP, PIO_COM );
 
 	// Put Generic Clock Generator 0 as source for Generic Clock Multiplexer 6 (USB reference)
-	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(6)     | // Generic Clock Multiplexer 6
+#if (SAMD21_SERIES)
+	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCM_USB)     | // Generic Clock Multiplexer
 	                    GCLK_CLKCTRL_GEN_GCLK0 | // Generic Clock Generator 0 is source
 	                    GCLK_CLKCTRL_CLKEN;
 	while (GCLK->STATUS.bit.SYNCBUSY)
 		;
+#elif (SAML21B_SERIES)
+        GCLK->PCHCTRL[GCM_USB].reg = ( GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK0 );
+        while ( (GCLK->PCHCTRL[GCM_USB].reg & GCLK_PCHCTRL_CHEN) == 0 );        // wait for sync
+#endif
 
 	USB_SetHandler(&UDD_Handler);
 

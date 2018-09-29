@@ -1,5 +1,6 @@
 /*
   Copyright (c) 2014 Arduino LLC.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -15,6 +16,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+//  Part of the SAML code ported from Mattairtech ArduinoCore-samd (https://github.com/mattairtech/ArduinoCore-samd):
+//     Copyright: Copyright (c) 2017-2018 MattairTech LLC. All right reserved.
+//     License: LGPL http://www.gnu.org/licenses/lgpl-2.1.html
 
 
 #include <stdio.h>
@@ -44,15 +49,33 @@ extern void (*gpf_isr)(void);
 
 
 // NVM Software Calibration Area Mapping
+#if (SAMD21_SERIES)
+#define NVM_CALIBRATION_ADDRESS    NVMCTRL_OTP4
 // USB TRANSN calibration value. Should be written to the USB PADCAL register.
-#define NVM_USB_PAD_TRANSN_POS     45
-#define NVM_USB_PAD_TRANSN_SIZE    5
+#define NVM_USB_PAD_TRANSN_POS     (45)
+#define NVM_USB_PAD_TRANSN_SIZE    (5)
 // USB TRANSP calibration value. Should be written to the USB PADCAL register.
-#define NVM_USB_PAD_TRANSP_POS     50
-#define NVM_USB_PAD_TRANSP_SIZE    5
+#define NVM_USB_PAD_TRANSP_POS     (50)
+#define NVM_USB_PAD_TRANSP_SIZE    (5)
 // USB TRIM calibration value. Should be written to the USB PADCAL register.
-#define NVM_USB_PAD_TRIM_POS       55
-#define NVM_USB_PAD_TRIM_SIZE      3
+#define NVM_USB_PAD_TRIM_POS       (55)
+#define NVM_USB_PAD_TRIM_SIZE      (3)
+#elif (SAML21B_SERIES)
+#define NVM_CALIBRATION_ADDRESS    NVMCTRL_OTP5
+// USB TRANSN calibration value. Should be written to the USB PADCAL register.
+#define NVM_USB_PAD_TRANSN_POS     (13)
+#define NVM_USB_PAD_TRANSN_SIZE    (5)
+// USB TRANSP calibration value. Should be written to the USB PADCAL register.
+#define NVM_USB_PAD_TRANSP_POS     (18)
+#define NVM_USB_PAD_TRANSP_SIZE    (5)
+// USB TRIM calibration value. Should be written to the USB PADCAL register.
+#define NVM_USB_PAD_TRIM_POS       (23)
+#define NVM_USB_PAD_TRIM_SIZE      (3)
+#endif
+
+#define USB_PAD_TRANSN_REG_POS     (6)
+#define USB_PAD_TRANSP_REG_POS     (0)
+#define USB_PAD_TRIM_REG_POS       (12)
 
 /**
  * \brief Initialize the SAMD21 host driver.
@@ -67,7 +90,13 @@ void UHD_Init(void)
 	USB_SetHandler(&UHD_Handler);
 
 	/* Enable USB clock */
+#if (SAMD21_SERIES)
 	PM->APBBMASK.reg |= PM_APBBMASK_USB;
+#elif (SAML21B_SERIES)
+	MCLK->APBBMASK.reg |= MCLK_APBBMASK_USB;
+#else
+	#error "samd21_host.c: Unsupported chip"
+#endif
 
 	/* Set up the USB DP/DM pins */
 	pinPeripheral( PIN_USB_DM, PIO_COM );
@@ -80,9 +109,10 @@ void UHD_Init(void)
 // 	PORT->Group[0].PMUX[PIN_PA25G_USB_DP/2].reg |= MUX_PA25G_USB_DP << (4 * (PIN_PA25G_USB_DP & 0x01u));
 
 	/* ----------------------------------------------------------------------------------------------
-	* Put Generic Clock Generator 0 as source for Generic Clock Multiplexer 6 (USB reference)
+	* Put Generic Clock Generator 0 as source for Generic Clock Multiplexer (USB reference)
 	*/
-	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(6) |        // Generic Clock Multiplexer 6
+#if (SAMD21_SERIES)
+	GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCM_USB) |        // Generic Clock Multiplexer
 						GCLK_CLKCTRL_GEN_GCLK0 |    // Generic Clock Generator 0 is source
 						GCLK_CLKCTRL_CLKEN;
 
@@ -90,6 +120,10 @@ void UHD_Init(void)
 	{
 		/* Wait for synchronization */
 	}
+#elif (SAML21B_SERIES)
+	GCLK->PCHCTRL[GCM_USB].reg = ( GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK0 );
+        while ( (GCLK->PCHCTRL[GCM_USB].reg & GCLK_PCHCTRL_CHEN) == 0 );        // wait for sync
+#endif
 
 	/* Reset */
 	USB->HOST.CTRLA.bit.SWRST = 1;
@@ -104,7 +138,7 @@ void UHD_Init(void)
 	while (USB->HOST.SYNCBUSY.reg == USB_SYNCBUSY_ENABLE);
 
 	/* Load Pad Calibration */
-	pad_transn = (*((uint32_t *)(NVMCTRL_OTP4)       // Non-Volatile Memory Controller
+	pad_transn = (*((uint32_t *)(NVM_CALIBRATION_ADDRESS)       // Non-Volatile Memory Controller
 					+ (NVM_USB_PAD_TRANSN_POS / 32))
 					>> (NVM_USB_PAD_TRANSN_POS % 32))
 				& ((1 << NVM_USB_PAD_TRANSN_SIZE) - 1);
@@ -116,7 +150,7 @@ void UHD_Init(void)
 
 	USB->HOST.PADCAL.bit.TRANSN = pad_transn;
 
-	pad_transp = (*((uint32_t *)(NVMCTRL_OTP4)
+	pad_transp = (*((uint32_t *)(NVM_CALIBRATION_ADDRESS)
 					+ (NVM_USB_PAD_TRANSP_POS / 32))
 					>> (NVM_USB_PAD_TRANSP_POS % 32))
 				& ((1 << NVM_USB_PAD_TRANSP_SIZE) - 1);
@@ -128,7 +162,7 @@ void UHD_Init(void)
 
 	USB->HOST.PADCAL.bit.TRANSP = pad_transp;
 
-	pad_trim = (*((uint32_t *)(NVMCTRL_OTP4)
+	pad_trim = (*((uint32_t *)(NVM_CALIBRATION_ADDRESS)
 					+ (NVM_USB_PAD_TRIM_POS / 32))
 				>> (NVM_USB_PAD_TRIM_POS % 32))
 				& ((1 << NVM_USB_PAD_TRIM_SIZE) - 1);
@@ -458,7 +492,7 @@ void UHD_Pipe_Send(uint32_t ul_pipe, uint32_t ul_token_type)
 		USB->HOST.HostPipe[ul_pipe].PINTFLAG.reg = USB_HOST_PINTFLAG_TRCPT(1);  // Transfer Complete 0
 		USB->HOST.HostPipe[ul_pipe].PSTATUSSET.reg = USB_HOST_PSTATUSSET_BK0RDY;
 	}
-   
+
 	// Unfreeze pipe
     uhd_unfreeze_pipe(ul_pipe);
 }
@@ -496,7 +530,7 @@ uint32_t UHD_Pipe_Is_Transfer_Complete(uint32_t ul_pipe, uint32_t ul_token_type)
             return 1;
          }
 		 break;
- 
+
       case USB_HOST_PCFG_PTOKEN_OUT:
          if (Is_uhd_out_ready(ul_pipe))
          {

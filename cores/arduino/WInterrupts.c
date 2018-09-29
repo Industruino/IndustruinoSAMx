@@ -1,5 +1,6 @@
 /*
   Copyright (c) 2015 Arduino LLC.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -15,6 +16,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+//  Part of the SAML code ported from Mattairtech ArduinoCore-samd (https://github.com/mattairtech/ArduinoCore-samd):
+//     Copyright: Copyright (c) 2017-2018 MattairTech LLC. All right reserved.
+//     License: LGPL http://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "Arduino.h"
 #include "wiring_private.h"
@@ -39,8 +44,17 @@ static void __initialize()
   NVIC_EnableIRQ(EIC_IRQn);
 
   // Enable GCLK for IEC (External Interrupt Controller)
+#if (SAMD21_SERIES)
   GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID(GCM_EIC));
+#elif (SAML21B_SERIES)
+  MCLK->APBAMASK.reg |= MCLK_APBAMASK_EIC;
+  GCLK->PCHCTRL[GCM_EIC].reg = ( GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK0 );
+  while ( (GCLK->PCHCTRL[GCM_EIC].reg & GCLK_PCHCTRL_CHEN) != GCLK_PCHCTRL_CHEN );	// wait for sync
+#else
+  #error "WInterrupts.c: Unsupported chip"
+#endif
 
+#if (SAMD21_SERIES)
 /* Shall we do that?
   // Do a software reset on EIC
   EIC->CTRL.SWRST.bit = 1 ;
@@ -50,6 +64,7 @@ static void __initialize()
   // Enable EIC
   EIC->CTRL.bit.ENABLE = 1;
   while (EIC->STATUS.bit.SYNCBUSY == 1) { }
+#endif
 }
 
 /*
@@ -61,6 +76,12 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
   static int enabled = 0;
   uint32_t config;
   uint32_t pos;
+
+#if (SAML21B_SERIES)
+  // The CHANGE and RISING interrupt modes on pin A31 on the SAML21 do not seem to work properly
+  if ((g_APinDescription[pin].ulPort == PORTA) && (g_APinDescription[pin].ulPin == 31) && ((mode == CHANGE) || (mode == RISING)))
+    return;
+#endif
 
 #if ARDUINO_SAMD_VARIANT_COMPLIANCE >= 10606
   EExt_Interrupts in = g_APinDescription[pin].ulExtInt;
@@ -77,7 +98,9 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
 
   // Enable wakeup capability on pin in case being used during sleep
   uint32_t inMask = 1 << in;
+#if (SAMD21_SERIES)
   EIC->WAKEUP.reg |= inMask;
+#endif
 
   // Assign pin to EIC
   pinPeripheral(pin, PIO_EXTINT);
@@ -114,6 +137,10 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
     }
 
     // Configure the interrupt mode
+#if (SAML21B_SERIES)
+    EIC->CTRLA.reg = 0;   // disable EIC before changing CONFIG
+    while (EIC->SYNCBUSY.reg & EIC_SYNCBUSY_MASK) { }
+#endif
     EIC->CONFIG[config].reg &=~ (EIC_CONFIG_SENSE0_Msk << pos); // Reset sense mode, important when changing trigger mode during runtime
     switch (mode)
     {
@@ -137,6 +164,10 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
         EIC->CONFIG[config].reg |= EIC_CONFIG_SENSE0_RISE_Val << pos;
         break;
     }
+#if (SAML21B_SERIES)
+    EIC->CTRLA.reg = EIC_CTRLA_ENABLE;    // enable EIC
+    while (EIC->SYNCBUSY.reg & EIC_SYNCBUSY_MASK) { }
+#endif
   }
   // Enable the interrupt
   EIC->INTENSET.reg = EIC_INTENSET_EXTINT(inMask);
@@ -151,15 +182,17 @@ void detachInterrupt(uint32_t pin)
   EExt_Interrupts in = g_APinDescription[pin].ulExtInt;
 #else
   EExt_Interrupts in = digitalPinToInterrupt(pin);
-#endif 
+#endif
   if (in == NOT_AN_INTERRUPT || in == EXTERNAL_INT_NMI)
     return;
 
   uint32_t inMask = 1 << in;
   EIC->INTENCLR.reg = EIC_INTENCLR_EXTINT(inMask);
-  
+
   // Disable wakeup capability on pin during sleep
+#if (SAMD21_SERIES)
   EIC->WAKEUP.reg &= ~inMask;
+#endif
 
   // Remove callback from the ISR list
   uint32_t current;

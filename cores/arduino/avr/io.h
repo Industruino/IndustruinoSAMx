@@ -2,6 +2,7 @@
   io.h - Definitions for compatibility with AVR io macros
 
   Copyright (c) 2016 Arduino LLC
+  Copyright (C) 2018 Industruino <connect@industruino.com>
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +23,25 @@
   THE SOFTWARE
 */
 
+//  Part of the SAML code ported from Mattairtech ArduinoCore-samd (https://github.com/mattairtech/ArduinoCore-samd):
+//     Copyright: Copyright (c) 2017-2018 MattairTech LLC. All right reserved.
+//     License: LGPL http://www.gnu.org/licenses/lgpl-2.1.html
+
 #ifndef _IO_H_
 #define _IO_H_
 
+#include <sam.h>
+
+#if (SAMD21_SERIES)
 #define RAMSTART (HMCRAMC0_ADDR)
 #define RAMSIZE  (HMCRAMC0_SIZE)
+#elif (SAML21B_SERIES)
+#define RAMSTART (HSRAM_ADDR)
+#define RAMSIZE  (HSRAM_SIZE)
+#else
+#error "avr/io.h: Unsupported chip"
+#endif
+
 #define RAMEND   (RAMSTART + RAMSIZE - 1)
 
 #endif

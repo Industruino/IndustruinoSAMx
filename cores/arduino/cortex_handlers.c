@@ -1,5 +1,6 @@
 /*
   Copyright (c) 2015 Arduino LLC.  All right reserved.
+  Copyright (C) 2018 Industruino <connect@industruino.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -15,6 +16,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+//  Part of the SAML code ported from Mattairtech ArduinoCore-samd (https://github.com/mattairtech/ArduinoCore-samd):
+//     Copyright: Copyright (c) 2017-2018 MattairTech LLC. All right reserved.
+//     License: LGPL http://www.gnu.org/licenses/lgpl-2.1.html
 
 #include <sam.h>
 #include <variant.h>
@@ -43,6 +48,7 @@ void PendSV_Handler   (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void SysTick_Handler  (void);
 
 /* Peripherals handlers */
+void SYSTEM_Handler   (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void PM_Handler       (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void SYSCTRL_Handler  (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void WDT_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
@@ -61,9 +67,20 @@ void SERCOM5_Handler  (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void TCC0_Handler     (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void TCC1_Handler     (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void TCC2_Handler     (void) __attribute__ ((weak, alias("Dummy_Handler")));
+void TC0_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
+#if (SAML21B_SERIES)
+void TC1_Handler      (void) __attribute__ ((weak)); // Used in Tone.cpp
+#else
+void TC1_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
+#endif
+void TC2_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void TC3_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void TC4_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
+#if (SAMD21_SERIES)
 void TC5_Handler      (void) __attribute__ ((weak)); // Used in Tone.cpp
+#else
+void TC5_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
+#endif
 void TC6_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void TC7_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void ADC_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
@@ -71,6 +88,8 @@ void AC_Handler       (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void DAC_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void PTC_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
 void I2S_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
+void AES_Handler      (void) __attribute__ ((weak, alias("Dummy_Handler")));
+void TRNG_Handler     (void) __attribute__ ((weak, alias("Dummy_Handler")));
 
 /* Initialize segments */
 extern uint32_t __etext;
@@ -103,6 +122,7 @@ __attribute__ ((section(".isr_vector"))) const DeviceVectors exception_table =
   (void*) SysTick_Handler,
 
   /* Configurable interrupts */
+#if (SAMD21_SERIES)
   (void*) PM_Handler,             /*  0 Power Manager */
   (void*) SYSCTRL_Handler,        /*  1 System Control */
   (void*) WDT_Handler,            /*  2 Watchdog Timer */
@@ -132,6 +152,36 @@ __attribute__ ((section(".isr_vector"))) const DeviceVectors exception_table =
   (void*) PTC_Handler,            /* 26 Peripheral Touch Controller */
   (void*) I2S_Handler,            /* 27 Inter-IC Sound Interface */
   (void*) (0UL),                  /* Reserved */
+#elif (SAML21B_SERIES)
+  (void*) SYSTEM_Handler,         /*  0 SYSTEM handler (includes SYSTEM, MCLK, OSCCTRL, OSC32KCTRL, PAC, PM, SUPC, and TAL) */
+  (void*) WDT_Handler,            /*  1 Watchdog Timer */
+  (void*) RTC_Handler,            /*  2 Real-Time Counter */
+  (void*) EIC_Handler,            /*  3 External Interrupt Controller */
+  (void*) NVMCTRL_Handler,        /*  4 / 6 Non-Volatile Memory Controller */
+  (void*) DMAC_Handler,           /*  5 / 7 Direct Memory Access Controller */
+  (void*) USB_Handler,            /*  6 Universal Serial Bus */
+  (void*) EVSYS_Handler,          /*  7 / 8 Event System Interface */
+  (void*) SERCOM0_Handler,        /*  8 / 9 Serial Communication Interface 0 */
+  (void*) SERCOM1_Handler,        /*  9 / 10 Serial Communication Interface 1 */
+  (void*) SERCOM2_Handler,        /* 10 / 11 Serial Communication Interface 2 */
+  (void*) SERCOM3_Handler,        /* 11 / 12 Serial Communication Interface 3 */
+  (void*) SERCOM4_Handler,        /* 12 / 13 Serial Communication Interface 4 */
+  (void*) SERCOM5_Handler,        /* 13 / 14 Serial Communication Interface 5 */
+  (void*) TCC0_Handler,           /* 14 / 17 Timer Counter Control 0 */
+  (void*) TCC1_Handler,           /* 15 / 18 Timer Counter Control 1 */
+  (void*) TCC2_Handler,           /* 16 / 19 Timer Counter Control 2 */
+  (void*) TC0_Handler,            /* 17 / 20 Basic Timer Counter 0 */
+  (void*) TC1_Handler,            /* 18 / 21 Basic Timer Counter 1 */
+  (void*) TC2_Handler,            /* 19 / 22 Basic Timer Counter 2 */
+  (void*) TC3_Handler,            /* 20 / 23 Basic Timer Counter 3 */
+  (void*) TC4_Handler,            /* 21 / 24 Basic Timer Counter 4 */
+  (void*) ADC_Handler,            /* 22 Analog Digital Converter */
+  (void*) AC_Handler,             /* 23 / 27 Analog Comparators */
+  (void*) DAC_Handler,            /* 24 / 28 Digital Analog Converter */
+  (void*) PTC_Handler,            /* 25 / 30 Peripheral Touch Controller */
+  (void*) AES_Handler,            /* 26 AES */
+  (void*) TRNG_Handler,           /* 27 TRNG */
+#endif
 };
 
 extern int main(void);
