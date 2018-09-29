@@ -1,0 +1,100 @@
+;
+; Copyright 2016 Arduino LLC (http://www.arduino.cc/)
+; Copyright (C) 2018  Industruino <connect@industruino.com>
+;
+; Developed by Zach Eveland, Blacklabel Development, Inc.
+; Adapted for Industruino by Claudio Indellicati
+;
+; Arduino is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+;
+; As a special exception, you may use this file as part of a free software
+; library without restriction.  Specifically, if other files instantiate
+; templates or use macros or inline functions from this file, or you compile
+; this file and link it with other files to produce an executable, this
+; file does not by itself cause the resulting executable to be covered by
+; the GNU General Public License.  This exception does not however
+; invalidate any other reasons why the executable file might be covered by
+; the GNU General Public License.
+;
+
+[Strings]
+DriverPackageDisplayName="Industruino USB Driver"
+ManufacturerName="ES Gear Ltd. (industruino.com)"
+ServiceName="USB RS-232 Emulation Driver"
+d21g.sketch.name="Industruino D21G"
+d21g.bootloader.name="Industruino D21G bootloader"
+420maker.sketch.name="Industruino 4-20mA.ker"
+420maker.bootloader.name="Industruino 4-20mA.ker bootloader"
+
+[DefaultInstall]
+CopyINF=industruino.inf
+
+[Version]
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Signature="$Windows NT$"
+Provider=%ManufacturerName%
+DriverPackageDisplayName=%DriverPackageDisplayName%
+; CatalogFile=industruino.cat
+; DriverVer date is MM/DD/YYYY
+DriverVer=11/13/2017,0.0.3.0
+CatalogFile=Industruino.cat
+
+[Manufacturer]
+%ManufacturerName%=DeviceList, NTamd64, NTia64
+
+[DestinationDirs]
+FakeModemCopyFileSection=12
+DefaultDestDir=12
+
+[DeviceList]
+%d21g.sketch.name%=DriverInstall, USB\VID_2E78&PID_804D&MI_00
+%d21g.bootloader.name%=DriverInstall, USB\VID_2E78&PID_004D
+%420maker.sketch.name%=DriverInstall, USB\VID_2E78&PID_804E&MI_00
+%420maker.bootloader.name%=DriverInstall, USB\VID_2E78&PID_004E
+
+[DeviceList.NTamd64]
+%d21g.sketch.name%=DriverInstall, USB\VID_2E78&PID_804D&MI_00
+%d21g.bootloader.name%=DriverInstall, USB\VID_2E78&PID_004D
+%420maker.sketch.name%=DriverInstall, USB\VID_2E78&PID_804E&MI_00
+%420maker.bootloader.name%=DriverInstall, USB\VID_2E78&PID_004E
+
+[DeviceList.NTia64]
+%d21g.sketch.name%=DriverInstall, USB\VID_2E78&PID_804D&MI_00
+%d21g.bootloader.name%=DriverInstall, USB\VID_2E78&PID_004D
+%420maker.sketch.name%=DriverInstall, USB\VID_2E78&PID_804E&MI_00
+%420maker.bootloader.name%=DriverInstall, USB\VID_2E78&PID_004E
+
+[DriverInstall]
+include=mdmcpq.inf,usb.inf
+CopyFiles = FakeModemCopyFileSection
+AddReg=DriverAddReg
+
+[DriverAddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,usbser.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[DriverInstall.Services]
+include=mdmcpq.inf
+AddService=usbser, 0x00000002, DriverService
+
+[DriverService]
+DisplayName=%ServiceName%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\usbser.sys
+LoadOrderGroup=Base

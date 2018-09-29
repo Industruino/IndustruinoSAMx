@@ -14,3 +14,53 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+menu.ext3v3status=External 3.3V initial status
+menu.sercomconfig=Serial configuration
+
+# Industruino 4-20mA.ker
+# ----------------------
+industruino_420maker.name=Industruino 4-20mA.ker
+industruino_420maker.vid.0=0x2E78
+industruino_420maker.pid.0=0x804E
+industruino_420maker.vid.1=0x2E78
+industruino_420maker.pid.1=0x004E
+
+industruino_420maker.menu.ext3v3status.on=ON
+industruino_420maker.menu.ext3v3status.on.build.ext3v3status=-DEXT_3V3_ON=1
+
+industruino_420maker.menu.ext3v3status.off=OFF
+industruino_420maker.menu.ext3v3status.off.build.ext3v3status=-DEXT_3V3_ON=0
+
+industruino_420maker.menu.sercomconfig.one=1. SPI+I2C
+industruino_420maker.menu.sercomconfig.one.build.sercomconfig=-DSERCOM_CONFIG_1
+
+industruino_420maker.menu.sercomconfig.two=2. SPI+UART
+industruino_420maker.menu.sercomconfig.two.build.sercomconfig=-DSERCOM_CONFIG_2
+
+industruino_420maker.menu.sercomconfig.three=3. I2C+UART
+industruino_420maker.menu.sercomconfig.three.build.sercomconfig=-DSERCOM_CONFIG_3
+
+industruino_420maker.upload.tool=bossac
+industruino_420maker.upload.protocol=sam-ba
+industruino_420maker.upload.maximum_size=262144
+industruino_420maker.upload.offset=8192
+industruino_420maker.upload.use_1200bps_touch=true
+industruino_420maker.upload.wait_for_upload_port=true
+industruino_420maker.upload.native_usb=true
+industruino_420maker.upload.native_usb_int=1
+industruino_420maker.build.mcu=cortex-m0plus
+industruino_420maker.build.f_cpu=48000000L
+industruino_420maker.build.usb_product="Industruino 4-20mA.ker"
+industruino_420maker.build.usb_manufacturer="ES Gear Ltd."
+industruino_420maker.build.board=SAML_INDUSTRUINO_420MAKER
+industruino_420maker.build.core=arduino
+industruino_420maker.build.extra_flags=-D__SAML21E18B__ {build.usb_flags} {build.ext3v3status} {build.sercomconfig}
+industruino_420maker.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
+industruino_420maker.build.openocdscript=openocd_scripts/industruino_420maker.cfg
+industruino_420maker.build.variant=industruino_420maker
+industruino_420maker.build.variant_system_lib=
+industruino_420maker.build.vid=0x2E78
+industruino_420maker.build.pid=0x804E
+industruino_420maker.bootloader.tool=openocd
+industruino_420maker.bootloader.file=420maker/saml21_sam_ba_industruino_420maker.bin
