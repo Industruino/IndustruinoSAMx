@@ -41,7 +41,7 @@ industruino_420maker.menu.sercomconfig.two.build.sercomconfig=-DSERCOM_CONFIG_2
 industruino_420maker.menu.sercomconfig.three=3. I2C+UART
 industruino_420maker.menu.sercomconfig.three.build.sercomconfig=-DSERCOM_CONFIG_3
 
-industruino_420maker.upload.tool=bossac
+industruino_420maker.upload.tool=industruino:bossac
 industruino_420maker.upload.protocol=sam-ba
 industruino_420maker.upload.maximum_size=262144
 industruino_420maker.upload.offset=8192
@@ -54,7 +54,7 @@ industruino_420maker.build.f_cpu=48000000L
 industruino_420maker.build.usb_product="Industruino 4-20mA.ker"
 industruino_420maker.build.usb_manufacturer="ES Gear Ltd."
 industruino_420maker.build.board=SAML_INDUSTRUINO_420MAKER
-industruino_420maker.build.core=arduino
+industruino_420maker.build.core=industruino
 industruino_420maker.build.extra_flags=-D__SAML21E18B__ {build.usb_flags} {build.ext3v3status} {build.sercomconfig}
 industruino_420maker.build.ldscript=linker_scripts/gcc/flash_with_bootloader.ld
 industruino_420maker.build.openocdscript=openocd_scripts/industruino_420maker.cfg
