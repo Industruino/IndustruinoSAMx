@@ -1,0 +1,21 @@
+edbg.name=Atmel EDBG (Industruino SAML)
+edbg.communication=USB
+edbg.protocol=
+edbg.program.protocol=
+edbg.program.tool=openocd
+edbg.program.extra_params=
+
+atmel_ice.name=Atmel-ICE (Industruino SAML)
+atmel_ice.communication=USB
+atmel_ice.protocol=
+atmel_ice.program.protocol=
+atmel_ice.program.tool=openocd
+atmel_ice.program.extra_params=
+
+sam_ice.name=Atmel SAM-ICE (Industruino SAML)
+sam_ice.communication=USB
+sam_ice.protocol=
+sam_ice.program.protocol=
+sam_ice.program.tool=openocd
+sam_ice.program.extra_params=
+

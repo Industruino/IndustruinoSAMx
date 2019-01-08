@@ -4,3 +4,6 @@
 *.bz2
 
 bootloaders/*/build/
+boards.txt
+platform.txt
+programmers.txt
