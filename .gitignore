@@ -3,6 +3,7 @@
 .Trashes
 *.bz2
 
+./README.md
 bootloaders/*/build/
 boards.txt
 platform.txt
