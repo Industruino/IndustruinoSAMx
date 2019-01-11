@@ -27,7 +27,7 @@ http://industruino.com/support
 
 If you find a bug you can submit an issue here on github:
 
-https://github.com/Industruino/IndustruinoSAML/issues
+https://github.com/Industruino/IndustruinoSAMx/issues
 
 Before posting a new issue, please check if the same problem has been already reported by someone else
 to avoid duplicates.
@@ -35,7 +35,7 @@ to avoid duplicates.
 ## Contributions
 
 Contributions are always welcome. The preferred way to receive code contribution is by submitting a
-Pull Request on github.
+Pull Request on GitHub.
 
 ## License and credits
 

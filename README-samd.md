@@ -27,14 +27,14 @@ https://industruino.com/forum/help-1/question/d21g-board-migration-help-325
 
 If you find a bug you can submit an issue here on GitHub:
 
-https://github.com/Industruino/IndustruinoSAMD/issues
+https://github.com/Industruino/IndustruinoSAMx/issues
 
 Before posting a new issue, please check if the same problem has been already reported by someone else
 to avoid duplicates.
 
 ## Contributions
 
-Contributions are always welcome. The preferred way to receive code cotribution is by submitting a
+Contributions are always welcome. The preferred way to receive code contribution is by submitting a
 Pull Request on GitHub.
 
 ## License and credits
