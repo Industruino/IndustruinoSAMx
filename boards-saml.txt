@@ -44,4 +44,5 @@ industruino_420maker.build.vid=0x2E78
 industruino_420maker.build.pid=0x804E
 industruino_420maker.bootloader.tool=openocd
 industruino_420maker.bootloader.file=420maker/saml21_sam_ba_industruino_420maker.bin
-
+industruino_420maker.bootloader.size=0x2000
+industruino_420maker.bootloader.size-dec=8192
