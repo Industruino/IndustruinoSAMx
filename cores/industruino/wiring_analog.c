@@ -274,7 +274,7 @@ uint32_t analogRead(uint32_t pin)
   pinPeripheral(pin, PIO_ANALOG);
 
 #if (SAMD21_SERIES)
-  if (pin == PIN_DAC0_ADCIN) { // Disable DAC, if analogWrite(A0,dval) used previously the DAC is enabled
+  if (pin == PIN_DAC0_ADCIN) { // Disable DAC, if analogWrite(DAC0,dval) used previously the DAC is enabled
     syncDAC();
     DAC->CTRLA.bit.ENABLE = 0x00; // Disable DAC
     //DAC->CTRLB.bit.EOEN = 0x00; // The DAC output is turned off.

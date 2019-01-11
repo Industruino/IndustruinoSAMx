@@ -132,7 +132,7 @@ tools.openocd.cmd.windows=bin/openocd.exe
 
 tools.openocd.upload.params.verbose=-d2
 tools.openocd.upload.params.quiet=-d0
-tools.openocd.upload.pattern="{path}/{cmd}" {upload.verbose} -s "{path}/share/openocd/scripts/" -f "{runtime.platform.path}/variants/{build.variant}/{build.openocdscript}" -c "telnet_port disabled; program {{build.path}/{build.project_name}.bin} verify reset 0x2000; shutdown"
+tools.openocd.upload.pattern="{path}/{cmd}" {upload.verbose} -s "{path}/share/openocd/scripts/" -f "{runtime.platform.path}/variants/{build.variant}/{build.openocdscript}" -c "telnet_port disabled; program {{build.path}/{build.project_name}.bin} verify reset {bootloader.size}; shutdown"
 
 tools.openocd.network_cmd={runtime.tools.arduinoOTA.path}/bin/arduinoOTA
 tools.openocd.upload.network_pattern={network_cmd} -address {serial.port} -port 65280 -username arduino -password "{network.password}" -sketch "{build.path}/{build.project_name}.bin" -upload /sketch -b
@@ -149,6 +149,22 @@ tools.openocd.erase.pattern=
 tools.openocd.bootloader.params.verbose=-d2
 tools.openocd.bootloader.params.quiet=-d0
 tools.openocd.bootloader.pattern="{path}/{cmd}" {bootloader.verbose} -s "{path}/share/openocd/scripts/" -f "{runtime.platform.path}/variants/{build.variant}/{build.openocdscript}" -c "telnet_port disabled; init; halt; at91samd bootloader 0; program {{runtime.platform.path}/bootloaders/{bootloader.file}} verify reset; shutdown"
+
+#
+# OpenOCD protected bootloader flashing
+#
+
+tools.openocd-prot.path={runtime.tools.openocd-0.10.0-arduino7.path}
+tools.openocd-prot.cmd=bin/openocd
+tools.openocd-prot.cmd.windows=bin/openocd.exe
+
+tools.openocd-prot.erase.params.verbose=-d3
+tools.openocd-prot.erase.params.quiet=-d0
+tools.openocd-prot.erase.pattern=
+
+tools.openocd-prot.bootloader.params.verbose=-d2
+tools.openocd-prot.bootloader.params.quiet=-d0
+tools.openocd-prot.bootloader.pattern="{path}/{cmd}" {bootloader.verbose} -s "{path}/share/openocd/scripts/" -f "{runtime.platform.path}/variants/{build.variant}/{build.openocdscript}" -c "telnet_port disabled; init; at91samd chip-erase; reset; sleep 1000; init; halt; at91samd bootloader 0; reset; sleep 1000; init; halt; program {{runtime.platform.path}/bootloaders/{bootloader.file}} verify; reset; sleep 1000; init; halt; at91samd bootloader {bootloader.size-dec}; reset; sleep 500; shutdown"
 
 #
 # OpenOCD sketch upload - version with configurable bootloader size
@@ -175,3 +191,20 @@ tools.openocd-withbootsize.erase.pattern=
 tools.openocd-withbootsize.bootloader.params.verbose=-d2
 tools.openocd-withbootsize.bootloader.params.quiet=-d0
 tools.openocd-withbootsize.bootloader.pattern="{path}/{cmd}" {bootloader.verbose} -s "{path}/share/openocd/scripts/" -f "{runtime.platform.path}/variants/{build.variant}/{build.openocdscript}" -c "telnet_port disabled; init; halt; at91samd bootloader 0; program {{runtime.platform.path}/bootloaders/{bootloader.file}} verify reset; shutdown"
+
+#
+# OpenOCD protected bootloader flashing - version with configurable bootloader size
+# FIXME: this programmer is a workaround for default options being overwritten by uploadUsingPreferences
+#
+
+tools.openocd-prot-withbootsize.path={runtime.tools.openocd-0.10.0-arduino7.path}
+tools.openocd-prot-withbootsize.cmd=bin/openocd
+tools.openocd-prot-withbootsize.cmd.windows=bin/openocd.exe
+
+tools.openocd-prot-withbootsize.erase.params.verbose=-d3
+tools.openocd-prot-withbootsize.erase.params.quiet=-d0
+tools.openocd-prot-withbootsize.erase.pattern=
+
+tools.openocd-prot-withbootsize.bootloader.params.verbose=-d2
+tools.openocd-prot-withbootsize.bootloader.params.quiet=-d0
+tools.openocd-prot-withbootsize.bootloader.pattern="{path}/{cmd}" {bootloader.verbose} -s "{path}/share/openocd/scripts/" -f "{runtime.platform.path}/variants/{build.variant}/{build.openocdscript}" -c "telnet_port disabled; init; at91samd chip-erase; reset; sleep 1000; init; halt; at91samd bootloader 0; reset; sleep 1000; init; halt; program {{runtime.platform.path}/bootloaders/{bootloader.file}} verify; reset; sleep 1000; init; halt; at91samd bootloader {bootloader.size-dec}; reset; sleep 500; shutdown"
